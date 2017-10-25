@@ -22,7 +22,9 @@ Note: The design of this repo is to be easily replicable to other collections lo
     
     tippecanoe -Pf -Z1 -Bg -z14 -pf -o earthquake-tweets.mbtiles earthquake-tweets.geojsonl
 
-    
+4. Upload the tileset to Mapbox:
+
+    ~/upload-tiles.js earthquake-tweets.mbtiles
     
 4. To visualize the tweets, recall that you'll need this:
 
