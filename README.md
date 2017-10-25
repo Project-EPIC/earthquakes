@@ -18,7 +18,10 @@ Note: The design of this repo is to be easily replicable to other collections lo
 
 3. Now use tippecanoe to tile objects
 
-    tippecanoe -Pf -o epic-earthquake-tweets.mbtiles 
+    tippecanoe -Pf -o epic-earthquake-tweets.mbtiles earthquake-tweets.geojsonl
+    
+    tippecanoe -Pf -Z1 -Bg -z14 -pf -o earthquake-tweets.mbtiles earthquake-tweets.geojsonl
+
     
     
 4. To visualize the tweets, recall that you'll need this:
