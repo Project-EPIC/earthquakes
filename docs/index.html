@@ -15,8 +15,8 @@
 
 </head>
 <body>
-<div id='timeline'>
-  <svg id='timeline-svg' width="1000" height="100"></svg>
+<div id='timeline' class='flex-parent flex-parent--center-main'>
+  <svg class="flex-child" id='timeline-svg' width="1200" height="100"></svg>
 </div>
 <div id='map'></div>
 
@@ -25,35 +25,85 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiamVubmluZ3NhbmRlcnNvbiIsImEiOiIzMHZndnpvIn0.P
 
 var map = new mapboxgl.Map({
     container: 'map',
-    zoom: 9,
-    center: [137.9150899566626, 36.25956997955441],
-    style: 'mapbox://styles/mapbox/streets-v9',
+    zoom: 2,
+    center: [-147.81, 36.93],
+    style: 'mapbox://styles/mapbox/satellite-streets-v9',
     hash: true
 });
 
 // Convert seconds to dates (return Date object?)
-var parseDate = d3.timeParse("%b %Y");
+var parseDate = d3.timeParse("%Y-%m-%d");
 function type(d) {
   d.date = parseDate(d.date);
   d.count = +d.count;
   return d;
 }
 
+var startTime
+var endTime
+
 map.once('load',function(){
   console.log('map loaded')
+
+  map.addLayer({
+    "id": "tweets",
+    "type": "circle",
+    "source" : {
+      type: 'vector',
+      url: 'mapbox://jenningsanderson.earthquake-tweets'
+    },
+    "source-layer": "earthquaketweetsgeojsonl",
+    "paint": {
+      "circle-color": "#ff69b4",
+      "circle-radius": 5
+    }
+  });
 
   d3.csv("earthquakes-meta.csv", type, function(error, data) {
     if (error) throw error;
 
     createD3Timeline({
       docID: "timeline-svg",
-      minDate:   new Date(2000,0,1),
-      maxDate:   new Date(2016,0,1),
+      //minDate:   new Date(2000,0,1),
+      //maxDate:   new Date(2016,0,1),
       data:      data
     },function(brushEvent){
+      startTime = Math.floor(brushEvent[0].getTime()/1000)
+      endTime   = Math.floor(brushEvent[1].getTime()/1000)
       console.log("Updating the map with", brushEvent)
+      console.warn(startTime, endTime)
+      map.setFilter('tweets',[
+        'all',
+        ['>=','timestamp',startTime],
+        ['<=','timestamp',endTime]
+      ])
     })
   })
+
+  //Interaction
+  map.on('mousemove', function(e){
+    var features = map.queryRenderedFeatures(e.point, {layers: ['tweets']})
+    map.getCanvas().style.cursor = (features.length>0)? 'pointer' : '';
+  });
+
+  map.on('click', function(e){
+    var features = map.queryRenderedFeatures(e.point, {layers: ['tweets']})
+    if(!features.length){return};
+    var props = features[0].properties
+
+    var html = "<table>"
+    html += `<tr><td><span style="margin-right:10px; font-weight:700;">User</span></td><td>${props.user}</td></tr>`
+    html += `<tr><td><span style="margin-right:10px; font-weight:700;">Time</span></td><td>${new Date(props.timestamp*1000)}</td></tr>`
+    html += `<tr><td><span style="margin-right:10px; font-weight:700;">Text</span></td><td>${decodeURIComponent( props.text.replace(/\+/g,' '))}</td></tr>`
+    html += `<tr><td><span style="margin-right:10px; font-weight:700;">timestamp</span></td><td>${props.timestamp}</td></tr>
+    </table>`
+
+    new mapboxgl.Popup({'closeOnClick':true})
+      .setLngLat(e.lngLat)
+      .setHTML(html)
+      .addTo(map);
+  });
+
 })
 
 </script>
