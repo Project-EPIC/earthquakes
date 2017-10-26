@@ -20,12 +20,14 @@ Note: The design of this repo is to be easily replicable to other collections lo
 
     tippecanoe -Pf -o epic-earthquake-tweets.mbtiles earthquake-tweets.geojsonl
     
-    tippecanoe -Pf -Z1 -Bg -z14 -pf -o earthquake-tweets.mbtiles earthquake-tweets.geojsonl
+With some trial and error, this one seems to work okay:
+    
+    tippecanoe -Pf -Z1 -z16 -B5 -m4 -as -o earthquake-tweets.mbtiles earthquake-tweets.geojsonl
 
 4. Upload the tileset to Mapbox:
 
     ~/upload-tiles.js earthquake-tweets.mbtiles
     
-4. To visualize the tweets, recall that you'll need this:
+5. The `docs` folder in this repository contains the webpage to view these tweets interactively.
 
-    decodeURIComponent( props.text.replace(/\+/g,' '))
+6. TODO: ^ This could be much better.
