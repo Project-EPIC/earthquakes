@@ -54,8 +54,10 @@ map.once('load',function(){
     },
     "source-layer": "earthquaketweetsgeojsonl",
     "paint": {
-      "circle-color": "#ff69b4",
-      "circle-radius": 5
+      "circle-color": "salmon",
+      "circle-radius": {
+        'stops':[[0,5],[10,4]]
+      }
     }
   });
 
