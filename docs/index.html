@@ -47,15 +47,18 @@ var endTime
 
 map.once('load',function(){
   console.log('map loaded')
+  
+  map.addSource('earthquake-tweets-source',{
+      type: 'vector',
+      url: 'mapbox://jenningsanderson.earthquake-tweets'
+  })
 
   map.addLayer({
     "id": "tweets",
     "type": "circle",
-    "source" : {
-      type: 'vector',
-      url: 'mapbox://jenningsanderson.earthquake-tweets'
-    },
+    "source" : "earthquake-tweets-source",
     "source-layer": "earthquaketweetsgeojsonl",
+    "minZoom":7,
     "paint": {
       "circle-color": "salmon",
       "circle-radius": {
@@ -63,6 +66,52 @@ map.once('load',function(){
       }
     }
   });
+  
+  map.addLayer({
+    "id": "earthquakes-heat",
+    "type": "heatmap",
+    "source": "earthquake-tweets-source",
+    "source-layer": "earthquaketweetsgeojsonl",
+    "maxzoom": 9,
+    "paint": {
+      //Increase the heatmap color weight weight by zoom level
+      //heatmap-ntensity is a multiplier on top of heatmap-weight
+      "heatmap-intensity": {
+          "stops": [
+              [0, 1],
+              [9, 3]
+          ]
+      },
+      //Color ramp for heatmap.  Domain is 0 (low) to 1 (high).
+      //Begin color ramp at 0-stop with a 0-transparancy color
+      //to create a blur-like effect.
+      "heatmap-color": {
+          "stops": [
+              [0, "rgba(33,102,172,0)"],
+              [0.2, "rgb(103,169,207)"],
+              [0.4, "rgb(209,229,240)"],
+              [0.6, "rgb(253,219,199)"],
+              [0.8, "rgb(239,138,98)"],
+              [1, "rgb(178,24,43)"]
+          ]
+      },
+      //Adjust the heatmap radius by zoom level
+      "heatmap-radius": {
+        "stops": [
+          [0, 2],
+          [9, 20]
+        ]
+      },
+      //Transition from heatmap to circle layer by zoom level
+      "heatmap-opacity": {
+        "default": 1,
+        "stops": [
+          [7, 1],
+          [9, 0]
+        ]
+      }
+    }
+  })
 
   d3.csv("earthquakes-meta.csv", type, function(error, data) {
     if (error) throw error;
