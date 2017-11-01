@@ -4,7 +4,7 @@
   <meta charset='utf-8' />
   <title>Earthquakes</title>
   <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-  
+
   <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.41.0/mapbox-gl.js'></script>
   <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.41.0/mapbox-gl.css' rel='stylesheet' />
 
@@ -48,7 +48,7 @@ var endTime
 
 map.once('load',function(){
   console.log('map loaded')
-  
+
   map.addSource('earthquake-tweets-source',{
       type: 'vector',
       url: 'mapbox://jenningsanderson.earthquake-tweets'
@@ -59,7 +59,7 @@ map.once('load',function(){
     "type": "circle",
     "source" : "earthquake-tweets-source",
     "source-layer": "earthquaketweetsgeojsonl",
-    "minZoom":7,
+    "minzoom":9,
     "paint": {
       "circle-color": "salmon",
       "circle-radius": {
@@ -67,7 +67,7 @@ map.once('load',function(){
       }
     }
   });
-  
+
   map.addLayer({
     "id": "earthquakes-heat",
     "type": "heatmap",
@@ -76,7 +76,7 @@ map.once('load',function(){
     "maxzoom": 9,
     "paint": {
       //Increase the heatmap color weight weight by zoom level
-      //heatmap-ntensity is a multiplier on top of heatmap-weight
+      //heatmap-intensity is a multiplier on top of heatmap-weight
       "heatmap-intensity": {
           "stops": [
               [0, 1],
@@ -89,8 +89,8 @@ map.once('load',function(){
       "heatmap-color": {
           "stops": [
               [0, "rgba(33,102,172,0)"],
-              [0.2, "rgb(103,169,207)"],
-              [0.4, "rgb(209,229,240)"],
+              [0.1, "rgb(103,169,207)"],
+              [0.2, "rgb(209,229,240)"],
               [0.6, "rgb(253,219,199)"],
               [0.8, "rgb(239,138,98)"],
               [1, "rgb(178,24,43)"]
@@ -99,8 +99,8 @@ map.once('load',function(){
       //Adjust the heatmap radius by zoom level
       "heatmap-radius": {
         "stops": [
-          [0, 2],
-          [9, 20]
+          [0, 1],
+          [9, 10]
         ]
       },
       //Transition from heatmap to circle layer by zoom level
@@ -132,33 +132,41 @@ map.once('load',function(){
         ['>=','timestamp',startTime],
         ['<=','timestamp',endTime]
       ])
+      map.setFilter('earthquakes-heat',[
+        'all',
+        ['>=','timestamp',startTime],
+        ['<=','timestamp',endTime]
+      ])
     })
   })
 
   //Interaction
   map.on('mousemove', function(e){
-    var features = map.queryRenderedFeatures(e.point, {layers: ['tweets']})
-    map.getCanvas().style.cursor = (features.length>0)? 'pointer' : '';
+    if (map.getZoom() > 9){
+      var features = map.queryRenderedFeatures(e.point, {layers: ['tweets']})
+      map.getCanvas().style.cursor = (features.length>0)? 'pointer' : '';
+    }
   });
 
   map.on('click', function(e){
-    var features = map.queryRenderedFeatures(e.point, {layers: ['tweets']})
-    if(!features.length){return};
-    var props = features[0].properties
+    if (map.getZoom() > 9){
+      var features = map.queryRenderedFeatures(e.point, {layers: ['tweets']})
+      if(!features.length){return};
+      var props = features[0].properties
 
-    var html = "<table>"
-    html += `<tr><td><span style="margin-right:10px; font-weight:700;">User</span></td><td>${props.user}</td></tr>`
-    html += `<tr><td><span style="margin-right:10px; font-weight:700;">Time</span></td><td>${new Date(props.timestamp*1000)}</td></tr>`
-    html += `<tr><td><span style="margin-right:10px; font-weight:700;">Text</span></td><td>${decodeURIComponent( props.text.replace(/\+/g,' '))}</td></tr>`
-    html += `<tr><td><span style="margin-right:10px; font-weight:700;">timestamp</span></td><td>${props.timestamp}</td></tr>
-    </table>`
+      var html = "<table>"
+      html += `<tr><td><span style="margin-right:10px; font-weight:700;">User</span></td><td>${props.user}</td></tr>`
+      html += `<tr><td><span style="margin-right:10px; font-weight:700;">Time</span></td><td>${new Date(props.timestamp*1000)}</td></tr>`
+      html += `<tr><td><span style="margin-right:10px; font-weight:700;">Text</span></td><td>${decodeURIComponent( props.text.replace(/\+/g,' '))}</td></tr>`
+      html += `<tr><td><span style="margin-right:10px; font-weight:700;">timestamp</span></td><td>${props.timestamp}</td></tr>
+      </table>`
 
-    new mapboxgl.Popup({'closeOnClick':true})
-      .setLngLat(e.lngLat)
-      .setHTML(html)
-      .addTo(map);
+      new mapboxgl.Popup({'closeOnClick':true})
+        .setLngLat(e.lngLat)
+        .setHTML(html)
+        .addTo(map);
+    }
   });
-
 })
 
 // Add zoom and rotation controls to the map.
